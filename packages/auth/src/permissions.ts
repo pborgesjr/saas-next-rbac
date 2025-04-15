@@ -9,12 +9,20 @@ type PermissionsByRoleFnParams = (
 ) => void
 
 export const permissions: Record<Role, PermissionsByRoleFnParams> = {
-  ADMIN: (_, builder) => {
+  ADMIN: (user, builder) => {
     builder.can('manage', 'all')
+
+    builder.cannot(['transfer', 'update'], 'Organization')
+    builder.can(['transfer', 'update'], 'Organization', {
+      ownerId: { $eq: user.id },
+    })
   },
   MEMBER: (user, builder) => {
+    builder.can('get', 'User')
     builder.can(['create', 'get'], 'Project')
     builder.can(['update', 'delete'], 'Project', { ownerId: { $eq: user.id } })
   },
-  BILLING: (_, builder) => {},
+  BILLING: (_, builder) => {
+    builder.can('manage', 'Billing')
+  },
 }
